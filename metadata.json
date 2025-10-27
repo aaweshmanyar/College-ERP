@@ -1,0 +1,5 @@
+{
+  "name": "School Management System",
+  "description": "A comprehensive School Management System with role-based access for Principals, Teachers, and Students. It allows for managing students, teachers, timetables, attendance, and marks within a clean, dashboard-based interface.",
+  "requestFramePermissions": []
+}
