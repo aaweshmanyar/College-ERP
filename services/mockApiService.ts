@@ -6,16 +6,16 @@ const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 // --- GETTERS ---
 export const getStudents = async (): Promise<Student[]> => {
-  await delay(300);
-  return [...students];
+    await delay(300);
+    return [...students];
 };
 export const getTeachers = async (): Promise<Teacher[]> => {
-  await delay(300);
-  return [...teachers];
+    await delay(300);
+    return [...teachers];
 };
 export const getClasses = async (): Promise<Class[]> => {
-  await delay(300);
-  return [...classes];
+    await delay(300);
+    return [...classes];
 };
 export const getSubjects = async (): Promise<Subject[]> => {
     await delay(300);
@@ -58,7 +58,7 @@ export const getMarksForTeacher = async (teacherId: number): Promise<Mark[]> => 
     await delay(300);
     return marks.filter(m => m.teacherId === teacherId);
 }
-export const getFullStudentData = async(): Promise<any[]> => {
+export const getFullStudentData = async (): Promise<any[]> => {
     await delay(500);
     return students.map(student => {
         const studentMarks = marks.filter(m => m.studentId === student.id);
@@ -70,26 +70,26 @@ export const getFullStudentData = async(): Promise<any[]> => {
         };
     });
 };
-export const getStudentForParent = async(parentId: number): Promise<Student | undefined> => {
+export const getStudentForParent = async (parentId: number): Promise<Student | undefined> => {
     await delay(300);
     return students.find(s => s.parentId === parentId);
 }
 
 // --- NEW GETTERS for Fees, Leave, Promotions ---
-export const getFeesForStudent = async(studentId: number): Promise<Fee[]> => {
+export const getFeesForStudent = async (studentId: number): Promise<Fee[]> => {
     await delay(300);
     return fees.filter(f => f.studentId === studentId);
 }
-export const getLeaveRequestsForStudent = async(studentId: number): Promise<LeaveRequest[]> => {
+export const getLeaveRequestsForStudent = async (studentId: number): Promise<LeaveRequest[]> => {
     await delay(300);
     return leaveRequests.filter(lr => lr.studentId === studentId);
 }
-export const getLeaveRequestsForTeacher = async(teacherId: number): Promise<LeaveRequest[]> => {
+export const getLeaveRequestsForTeacher = async (teacherId: number): Promise<LeaveRequest[]> => {
     await delay(300);
     const teacherStudentIds = new Set((await getStudentsForTeacher(teacherId)).map(s => s.id));
     return leaveRequests.filter(lr => teacherStudentIds.has(lr.studentId));
 }
-export const getPromotionsForStudent = async(studentId: number): Promise<Promotion[]> => {
+export const getPromotionsForStudent = async (studentId: number): Promise<Promotion[]> => {
     await delay(300);
     return promotions.filter(p => p.studentId === studentId);
 }
@@ -301,11 +301,11 @@ export const deleteSubjectAssignment = async (assignmentId: number): Promise<voi
 }
 
 // --- NEW GETTERS for Communication ---
-export const getCommunicationsForStudent = async(studentId: number): Promise<Communication[]> => {
+export const getCommunicationsForStudent = async (studentId: number): Promise<Communication[]> => {
     await delay(300);
     return communications.filter(c => c.studentId === studentId).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
-export const getCommunicationsForTeacher = async(teacherId: number): Promise<Communication[]> => {
+export const getCommunicationsForTeacher = async (teacherId: number): Promise<Communication[]> => {
     await delay(300);
     return communications.filter(c => c.teacherId === teacherId).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
@@ -327,7 +327,7 @@ export const updateCommunication = async (id: number, data: Partial<Pick<Communi
     await delay(300);
     const comm = communications.find(c => c.id === id);
     if (!comm) throw new Error("Communication not found");
-    
+
     if (data.reply) {
         comm.reply = data.reply;
         comm.replyDate = new Date().toISOString().split('T')[0];
@@ -338,7 +338,6 @@ export const updateCommunication = async (id: number, data: Partial<Pick<Communi
     return comm;
 }
 
-// --- PERFORMANCE DATA ---
 export const getSchoolWidePerformanceData = async () => {
     await delay(500);
     const studentPerformances = students.map(student => {
@@ -359,3 +358,30 @@ export const getSchoolWidePerformanceData = async () => {
 
     return { totalStudents, schoolAverage: schoolAverage.toFixed(2), topPerformers };
 };
+
+// --- BIOMETRIC ATTENDANCE ---
+export const addBiometricAttendance = async (studentId: number): Promise<Attendance> => {
+    await delay(500);
+    const date = new Date().toISOString().split('T')[0];
+
+    // Check if attendance already exists for today
+    const existing = attendance.find(a => a.studentId === studentId && a.date === date);
+    if (existing) {
+        return existing;
+    }
+
+    const newAttendance: Attendance = {
+        id: Math.max(...attendance.map(a => a.id), 0) + 1,
+        studentId: studentId,
+        date: date,
+        status: 'Present' as any, // We will handle the display logic in the component
+        teacherId: 201 // Default to principal or system teacher
+    };
+
+    // Note: We are using 'any' cast because the Status enum in types.ts doesn't include the custom string yet.
+    // For this prototype, we'll store it as 'Present' and the UI will decorate it.
+
+    attendance.push(newAttendance);
+    return newAttendance;
+};
+

@@ -12,13 +12,13 @@ const Dashboard: React.FC = () => {
   const [activeView, setActiveView] = useState('Dashboard');
 
   if (!user) {
-    return null; 
+    return null;
   }
 
   const renderDashboardContent = () => {
     switch (user.role) {
       case UserRole.PRINCIPAL:
-        return <PrincipalDashboard activeView={activeView} />;
+        return <PrincipalDashboard activeView={activeView} user={user} />;
       case UserRole.TEACHER:
         return <TeacherDashboard activeView={activeView} user={user} />;
       case UserRole.STUDENT:

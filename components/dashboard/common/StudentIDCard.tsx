@@ -46,7 +46,7 @@ const StudentIDCard: React.FC<StudentIDCardProps> = ({ student, studentClass }) 
                     <span className="font-semibold">Guardian:</span>
                     <span>{student.guardianName}</span>
                 </div>
-                 <div className="flex justify-between border-t pt-2">
+                <div className="flex justify-between border-t pt-2">
                     <span className="font-semibold">Contact:</span>
                     <span>{student.guardianContact}</span>
                 </div>

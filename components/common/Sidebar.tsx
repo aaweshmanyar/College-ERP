@@ -33,11 +33,10 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView }) => {
                   e.preventDefault();
                   setActiveView(name);
                 }}
-                className={`flex items-center px-4 py-3 my-1 rounded-md transition-colors duration-200 ${
-                  activeView === name
+                className={`flex items-center px-4 py-3 my-1 rounded-md transition-colors duration-200 ${activeView === name
                     ? 'bg-gray-700 text-white'
                     : 'text-gray-400 hover:bg-gray-700 hover:text-white'
-                }`}
+                  }`}
               >
                 <Icon />
                 <span className="ml-4">{name}</span>

@@ -31,7 +31,7 @@ const LeaveRequestView: React.FC<LeaveRequestViewProps> = ({ studentId }) => {
         e.preventDefault();
         const student = students.find(s => s.id === studentId);
         if (!student) return;
-        
+
         // Simple logic to find a teacher for the student's class
         const entry = timetable.find(t => t.classId === student.classId);
         if (!entry) {
@@ -44,7 +44,7 @@ const LeaveRequestView: React.FC<LeaveRequestViewProps> = ({ studentId }) => {
         setNewRequest({ fromDate: '', toDate: '', reason: '' });
         fetchData();
     };
-    
+
     const getStatusColor = (status: LeaveRequest['status']) => {
         switch (status) {
             case 'Approved': return 'bg-green-100 text-green-800';
@@ -59,11 +59,13 @@ const LeaveRequestView: React.FC<LeaveRequestViewProps> = ({ studentId }) => {
         { header: 'To', accessor: 'toDate' as keyof LeaveRequest },
         { header: 'Reason', accessor: 'reason' as keyof LeaveRequest },
         { header: 'Approver', accessor: (item: LeaveRequest) => teachers.find(t => t.id === item.teacherId)?.name || 'N/A' },
-        { header: 'Status', accessor: (item: LeaveRequest) => (
-            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(item.status)}`}>
-                {item.status}
-            </span>
-        )},
+        {
+            header: 'Status', accessor: (item: LeaveRequest) => (
+                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(item.status)}`}>
+                    {item.status}
+                </span>
+            )
+        },
     ];
 
     if (loading) return <div>Loading leave requests...</div>;
@@ -77,23 +79,23 @@ const LeaveRequestView: React.FC<LeaveRequestViewProps> = ({ studentId }) => {
                 </button>
             </div>
             <Table<LeaveRequest> columns={columns} data={leaveRequests} />
-            
+
             {isModalOpen && (
                 <Modal title="Apply for Leave" onClose={() => setIsModalOpen(false)}>
                     <form onSubmit={handleApplyLeave} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium">From Date</label>
-                                <input type="date" value={newRequest.fromDate} onChange={e => setNewRequest({...newRequest, fromDate: e.target.value})} className="w-full p-2 border rounded" required />
+                                <input type="date" value={newRequest.fromDate} onChange={e => setNewRequest({ ...newRequest, fromDate: e.target.value })} className="w-full p-2 border rounded" required />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium">To Date</label>
-                                <input type="date" value={newRequest.toDate} onChange={e => setNewRequest({...newRequest, toDate: e.target.value})} className="w-full p-2 border rounded" required />
+                                <input type="date" value={newRequest.toDate} onChange={e => setNewRequest({ ...newRequest, toDate: e.target.value })} className="w-full p-2 border rounded" required />
                             </div>
                         </div>
                         <div>
                             <label className="block text-sm font-medium">Reason</label>
-                            <textarea value={newRequest.reason} onChange={e => setNewRequest({...newRequest, reason: e.target.value})} className="w-full p-2 border rounded" rows={3} required />
+                            <textarea value={newRequest.reason} onChange={e => setNewRequest({ ...newRequest, reason: e.target.value })} className="w-full p-2 border rounded" rows={3} required />
                         </div>
                         <div className="flex justify-end mt-4">
                             <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 mr-2 text-gray-700 bg-gray-200 rounded-md">Cancel</button>

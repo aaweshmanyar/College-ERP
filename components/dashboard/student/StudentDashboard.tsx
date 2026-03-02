@@ -11,8 +11,11 @@ import FeeManagement from '../common/FeeManagement';
 import LeaveRequestView from '../common/LeaveRequestView';
 import StudentIDCard from '../common/StudentIDCard';
 import PromotionHistoryView from '../common/PromotionHistoryView';
+
 import Modal from '../../common/Modal';
 import StudentMessages from './StudentMessages';
+import BiometricAttendance from '../common/BiometricAttendance';
+
 
 
 interface StudentDashboardProps {
@@ -57,19 +60,19 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ activeView, user })
 
   useEffect(() => {
     if (selectedTeacherId) {
-        const fetchTeacherTimetable = async () => {
-            const data = await api.getTimetableForTeacher(parseInt(selectedTeacherId, 10));
-            setTimetable(data);
-        };
-        fetchTeacherTimetable();
+      const fetchTeacherTimetable = async () => {
+        const data = await api.getTimetableForTeacher(parseInt(selectedTeacherId, 10));
+        setTimetable(data);
+      };
+      fetchTeacherTimetable();
     } else {
-        if (studentInfo) {
-            const fetchOwnTimetable = async () => {
-                const data = await api.getTimetableForStudent(studentInfo.classId);
-                setTimetable(data);
-            }
-            fetchOwnTimetable();
+      if (studentInfo) {
+        const fetchOwnTimetable = async () => {
+          const data = await api.getTimetableForStudent(studentInfo.classId);
+          setTimetable(data);
         }
+        fetchOwnTimetable();
+      }
     }
   }, [selectedTeacherId, studentInfo]);
 
@@ -82,11 +85,20 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ activeView, user })
   }
 
   const calculateAttendancePercentage = () => {
-      if (attendance.length === 0) return 'N/A';
-      const presentDays = attendance.filter(a => a.status === 'Present' || a.status === 'Late').length;
-      return `${((presentDays / attendance.length) * 100).toFixed(2)}%`;
+    if (attendance.length === 0) return 'N/A';
+    const presentDays = attendance.filter(a => a.status === 'Present' || a.status === 'Late').length;
+    return `${((presentDays / attendance.length) * 100).toFixed(2)}%`;
   }
-  
+
+
+  const handleBiometricScan = async () => {
+    if (studentInfo) {
+      await api.addBiometricAttendance(studentInfo.id);
+      const attendanceData = await api.getAttendanceForStudent(studentInfo.id);
+      setAttendance(attendanceData);
+    }
+  };
+
   const renderContent = () => {
     if (loading) return <div>Loading dashboard...</div>;
     if (!studentInfo) return <div>Student data not found.</div>;
@@ -94,64 +106,71 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ activeView, user })
     switch (activeView) {
       case 'My Profile':
         return (
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <DetailedStudentProfile student={studentInfo} allClasses={classes} allSubjects={subjects} />
-            </div>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <DetailedStudentProfile student={studentInfo} allClasses={classes} allSubjects={subjects} />
+          </div>
         );
       case 'My Marks':
         const marksColumns = [
-            { header: 'Subject', accessor: (item: Mark) => subjects.find(s => s.id === item.subjectId)?.name || 'N/A'},
-            { header: 'Exam', accessor: 'examName' as keyof Mark },
-            { header: 'Marks Obtained', accessor: 'marks' as keyof Mark },
-            { header: 'Total Marks', accessor: 'total' as keyof Mark },
-            { header: 'Grade', accessor: 'grade' as keyof Mark },
+          { header: 'Subject', accessor: (item: Mark) => subjects.find(s => s.id === item.subjectId)?.name || 'N/A' },
+          { header: 'Exam', accessor: 'examName' as keyof Mark },
+          { header: 'Marks Obtained', accessor: 'marks' as keyof Mark },
+          { header: 'Total Marks', accessor: 'total' as keyof Mark },
+          { header: 'Grade', accessor: 'grade' as keyof Mark },
         ];
         return (
-            <div>
-                <h2 className="text-2xl font-semibold text-gray-800 mb-6">My Marks</h2>
-                <Table<Mark> columns={marksColumns} data={marks} />
-            </div>
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">My Marks</h2>
+            <Table<Mark> columns={marksColumns} data={marks} />
+          </div>
         );
       case 'My Attendance':
         const attendanceColumns = [
-            { header: 'Date', accessor: 'date' as keyof Attendance },
-            { header: 'Status', accessor: 'status' as keyof Attendance },
+          { header: 'Date', accessor: 'date' as keyof Attendance },
+          {
+            header: 'Status', accessor: (item: Attendance) => (
+              <div className="flex items-center">
+                <span>{item.status}</span>
+                {item.teacherId === 201 && <span className="ml-1 text-xs text-gray-400"> (Biometric)</span>}
+              </div>
+            )
+          },
         ];
         return (
-            <div>
-                <h2 className="text-2xl font-semibold text-gray-800 mb-6">My Attendance</h2>
-                <Table<Attendance> columns={attendanceColumns} data={attendance} />
-            </div>
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">My Attendance</h2>
+            <Table<Attendance> columns={attendanceColumns} data={attendance} />
+          </div>
         );
       case 'My Timetable':
         const timetableColumns = [
-            { header: 'Day', accessor: 'day' as keyof TimetableEntry },
-            { header: 'Time Slot', accessor: 'timeSlot' as keyof TimetableEntry },
-            { header: 'Subject', accessor: (item: TimetableEntry) => subjects.find(s => s.id === item.subjectId)?.name || 'N/A' },
-            { header: 'Teacher', accessor: (item: TimetableEntry) => teachers.find(t => t.id === item.teacherId)?.name || 'N/A' },
-            { header: 'Room', accessor: 'room' as keyof TimetableEntry },
+          { header: 'Day', accessor: 'day' as keyof TimetableEntry },
+          { header: 'Time Slot', accessor: 'timeSlot' as keyof TimetableEntry },
+          { header: 'Subject', accessor: (item: TimetableEntry) => subjects.find(s => s.id === item.subjectId)?.name || 'N/A' },
+          { header: 'Teacher', accessor: (item: TimetableEntry) => teachers.find(t => t.id === item.teacherId)?.name || 'N/A' },
+          { header: 'Room', accessor: 'room' as keyof TimetableEntry },
         ];
         return (
-            <div>
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-semibold text-gray-800">My Timetable</h2>
-                    <div>
-                        <label htmlFor="teacher-select" className="mr-2 text-sm font-medium">View Teacher's Timetable:</label>
-                        <select
-                            id="teacher-select"
-                            value={selectedTeacherId}
-                            onChange={(e) => setSelectedTeacherId(e.target.value)}
-                            className="p-2 border rounded"
-                        >
-                            <option value="">My Timetable</option>
-                            {teachers.map(teacher => (
-                                <option key={teacher.id} value={teacher.id}>{teacher.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-                <Table<TimetableEntry> columns={timetableColumns} data={timetable} />
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold text-gray-800">My Timetable</h2>
+              <div>
+                <label htmlFor="teacher-select" className="mr-2 text-sm font-medium">View Teacher's Timetable:</label>
+                <select
+                  id="teacher-select"
+                  value={selectedTeacherId}
+                  onChange={(e) => setSelectedTeacherId(e.target.value)}
+                  className="p-2 border rounded"
+                >
+                  <option value="">My Timetable</option>
+                  {teachers.map(teacher => (
+                    <option key={teacher.id} value={teacher.id}>{teacher.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
+            <Table<TimetableEntry> columns={timetableColumns} data={timetable} />
+          </div>
         );
       case 'Fee Management':
         return <FeeManagement studentId={studentInfo.id} />;
@@ -161,12 +180,12 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ activeView, user })
         return <StudentMessages />;
       case 'My ID Card':
         return (
-            <div>
-                <h2 className="text-2xl font-semibold text-gray-800 mb-6">My ID Card</h2>
-                <div className="flex justify-center">
-                    <StudentIDCard student={studentInfo} studentClass={classes.find(c => c.id === studentInfo.classId)} />
-                </div>
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">My ID Card</h2>
+            <div className="flex justify-center">
+              <StudentIDCard student={studentInfo} studentClass={classes.find(c => c.id === studentInfo.classId)} />
             </div>
+          </div>
         );
       case 'Promotion History':
         return <PromotionHistoryView studentId={studentInfo.id} />;
@@ -177,14 +196,28 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ activeView, user })
         return (
           <div>
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">Student Dashboard</h2>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card title="Overall Percentage" value={calculateOverallPercentage()} icon={<PresentationChartLineIcon />} color="bg-green-100 text-green-600" />
               <Card title="Attendance" value={calculateAttendancePercentage()} icon={<ClipboardListIcon />} color="bg-yellow-100 text-yellow-600" />
             </div>
-            <div className="mt-8">
+
+            <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-1">
+                <BiometricAttendance
+                  userName={user.name}
+                  role="Student"
+                  isVerified={true}
+                  variant="simple"
+                  onScan={handleBiometricScan}
+                />
+              </div>
+              <div className="lg:col-span-2">
                 <AnnouncementsView role={UserRole.STUDENT} />
+              </div>
             </div>
           </div>
+
         );
     }
   };

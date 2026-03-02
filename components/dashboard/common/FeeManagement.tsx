@@ -33,17 +33,18 @@ const FeeManagement: React.FC<FeeManagementProps> = ({ studentId }) => {
     const columns = [
         { header: 'Amount', accessor: (item: Fee) => `₹${item.amount.toFixed(2)}` },
         { header: 'Due Date', accessor: 'dueDate' as keyof Fee },
-        { header: 'Status', accessor: (item: Fee) => (
-            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                item.status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-            }`}>
-                {item.status}
-            </span>
-        )},
+        {
+            header: 'Status', accessor: (item: Fee) => (
+                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${item.status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                    {item.status}
+                </span>
+            )
+        },
         // FIX: Removed duplicate 'accessor' property which caused a syntax error.
         { header: 'Payment Date', accessor: (item: Fee) => item.paymentDate || 'N/A' },
     ];
-    
+
     if (loading) return <div>Loading fee details...</div>;
 
     return (
@@ -54,7 +55,7 @@ const FeeManagement: React.FC<FeeManagementProps> = ({ studentId }) => {
                 data={fees}
                 renderActions={(fee) => (
                     fee.status === 'Unpaid' && (
-                        <button 
+                        <button
                             onClick={() => handlePayFee(fee.id)}
                             className="px-3 py-1 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
                         >

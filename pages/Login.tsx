@@ -27,7 +27,7 @@ const LoginPage: React.FC = () => {
     }
     return filteredUsers;
   }, [selectedRole]);
-  
+
   return (
     <>
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -75,21 +75,21 @@ const LoginPage: React.FC = () => {
             </div>
           </form>
           <div className="pt-4 border-t border-gray-200">
-             <button
-                type="button"
-                onClick={() => setIsFeaturesModalOpen(true)}
-                className="w-full text-center py-2 text-sm font-medium text-indigo-600 bg-transparent rounded-md hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            <button
+              type="button"
+              onClick={() => setIsFeaturesModalOpen(true)}
+              className="w-full text-center py-2 text-sm font-medium text-indigo-600 bg-transparent rounded-md hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-                Know more about our system
+              Know more about our system
             </button>
           </div>
         </div>
       </div>
-      
+
       {isFeaturesModalOpen && (
-          <Modal title="System Features Overview" onClose={() => setIsFeaturesModalOpen(false)} size="4xl">
-              <FeaturesShowcase />
-          </Modal>
+        <Modal title="System Features Overview" onClose={() => setIsFeaturesModalOpen(false)} size="4xl">
+          <FeaturesShowcase />
+        </Modal>
       )}
     </>
   );

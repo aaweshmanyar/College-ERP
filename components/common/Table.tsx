@@ -6,7 +6,7 @@ interface TableProps<T> {
   renderActions?: (item: T) => React.ReactNode;
 }
 
-const Table = <T extends { id: any },>( { columns, data, renderActions }: TableProps<T>) => {
+const Table = <T extends { id: any },>({ columns, data, renderActions }: TableProps<T>) => {
   return (
     <div className="overflow-x-auto bg-white rounded-lg shadow">
       <table className="min-w-full divide-y divide-gray-200">

@@ -12,6 +12,9 @@ import LeaveManagement from './LeaveManagement';
 import TeacherMessages from './TeacherMessages';
 import TeacherPerformanceView from './TeacherPerformanceView';
 
+
+import BiometricAttendance from '../common/BiometricAttendance';
+
 interface TeacherDashboardProps {
   activeView: string;
   user: User;
@@ -22,7 +25,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ activeView, user })
   const [timetable, setTimetable] = useState([]);
 
   const teacherInfo = teachers.find(t => t.userId === user.id);
-  
+
   useEffect(() => {
     if (!teacherInfo) return;
     const fetchData = async () => {
@@ -36,7 +39,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ activeView, user })
 
   const renderContent = () => {
     if (!teacherInfo) return <div>Teacher data not found.</div>;
-    
+
     switch (activeView) {
       case 'My Students':
         return <MyStudentsView teacherId={teacherInfo.id} />;
@@ -51,35 +54,57 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ activeView, user })
       case 'Performance':
         return <TeacherPerformanceView teacherId={teacherInfo.id} />;
       case 'My Timetable':
-          const columns = [
-              { header: 'Day', accessor: 'day' },
-              { header: 'Time Slot', accessor: 'timeSlot' },
-              { header: 'Class', accessor: (item) => {
-                  const c = classes.find(cls => cls.id === item.classId);
-                  return c ? `${c.name}-${c.section}` : 'N/A';
-              }},
-              { header: 'Subject', accessor: (item) => subjects.find(s => s.id === item.subjectId)?.name || 'N/A' },
-              { header: 'Room', accessor: 'room' },
-          ];
-          return (
-              <div>
-                  <h2 className="text-2xl font-semibold text-gray-800 mb-6">My Timetable</h2>
-                  <Table columns={columns} data={timetable} />
-              </div>
-          );
+        const columns = [
+          { header: 'Day', accessor: 'day' },
+          { header: 'Time Slot', accessor: 'timeSlot' },
+          {
+            header: 'Class', accessor: (item) => {
+              const c = classes.find(cls => cls.id === item.classId);
+              return c ? `${c.name}-${c.section}` : 'N/A';
+            }
+          },
+          { header: 'Subject', accessor: (item) => subjects.find(s => s.id === item.subjectId)?.name || 'N/A' },
+          { header: 'Room', accessor: 'room' },
+        ];
+        return (
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">My Timetable</h2>
+            <Table columns={columns} data={timetable} />
+          </div>
+        );
       case 'Dashboard':
       default:
         return (
           <div>
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">Teacher's Dashboard</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card title="Assigned Students" value={studentCount} icon={<UsersIcon />} color="bg-blue-100 text-blue-600" />
-              <Card title="Today's Classes" value={timetable.filter(t => t.day === 'Monday').length} icon={<CalendarIcon />} color="bg-purple-100 text-purple-600" />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card title="Assigned Students" value={studentCount} icon={<UsersIcon />} color="bg-blue-100 text-blue-600" />
+                  <Card title="Today's Classes" value={timetable.filter(t => t.day === 'Monday').length} icon={<CalendarIcon />} color="bg-purple-100 text-purple-600" />
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                  <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+                  <div className="flex gap-4">
+                    <button className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Mark Attendance</button>
+                    <button className="px-4 py-2 border border-indigo-600 text-indigo-600 rounded-md hover:bg-indigo-50">View Schedule</button>
+                  </div>
+                </div>
+              </div>
+              <div className="lg:col-span-1">
+                <BiometricAttendance
+                  userName={user.name}
+                  role="Teacher"
+                  isVerified={true}
+                  variant="simple"
+                />
+              </div>
             </div>
           </div>
         );
     }
   };
+
 
   return <div>{renderContent()}</div>;
 };

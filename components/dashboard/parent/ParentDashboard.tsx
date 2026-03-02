@@ -11,6 +11,9 @@ import LeaveRequestView from '../common/LeaveRequestView';
 import AnnouncementsView from '../common/AnnouncementsView';
 import StudentPerformanceDashboard from '../common/StudentPerformanceDashboard';
 
+
+import BiometricAttendance from '../common/BiometricAttendance';
+
 interface ParentDashboardProps {
   activeView: string;
   user: User;
@@ -30,34 +33,34 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({ activeView, user }) =
 
   useEffect(() => {
     const fetchChildData = async () => {
-        if (!parentInfo) {
-            setLoading(false);
-            return;
-        }
-        setLoading(true);
-        const student = await api.getStudentForParent(parentInfo.id);
-        if (student) {
-            setChild(student);
-            const [marksData, attendanceData, timetableData, subjectsData, teachersData, classesData] = await Promise.all([
-                api.getMarksForStudent(student.id),
-                api.getAttendanceForStudent(student.id),
-                api.getTimetableForStudent(student.classId),
-                api.getSubjects(),
-                api.getTeachers(),
-                api.getClasses(),
-            ]);
-            setMarks(marksData);
-            setAttendance(attendanceData);
-            setTimetable(timetableData);
-            setSubjects(subjectsData);
-            setTeachers(teachersData);
-            setClasses(classesData);
-        }
+      if (!parentInfo) {
         setLoading(false);
+        return;
+      }
+      setLoading(true);
+      const student = await api.getStudentForParent(parentInfo.id);
+      if (student) {
+        setChild(student);
+        const [marksData, attendanceData, timetableData, subjectsData, teachersData, classesData] = await Promise.all([
+          api.getMarksForStudent(student.id),
+          api.getAttendanceForStudent(student.id),
+          api.getTimetableForStudent(student.classId),
+          api.getSubjects(),
+          api.getTeachers(),
+          api.getClasses(),
+        ]);
+        setMarks(marksData);
+        setAttendance(attendanceData);
+        setTimetable(timetableData);
+        setSubjects(subjectsData);
+        setTeachers(teachersData);
+        setClasses(classesData);
+      }
+      setLoading(false);
     };
     fetchChildData();
   }, [parentInfo]);
-  
+
   const calculateOverallPercentage = () => {
     if (marks.length === 0) return 'N/A';
     const totalMarks = marks.reduce((acc, curr) => acc + curr.marks, 0);
@@ -67,9 +70,9 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({ activeView, user }) =
   }
 
   const calculateAttendancePercentage = () => {
-      if (attendance.length === 0) return 'N/A';
-      const presentDays = attendance.filter(a => a.status === 'Present' || a.status === 'Late').length;
-      return `${((presentDays / attendance.length) * 100).toFixed(2)}%`;
+    if (attendance.length === 0) return 'N/A';
+    const presentDays = attendance.filter(a => a.status === 'Present' || a.status === 'Late').length;
+    return `${((presentDays / attendance.length) * 100).toFixed(2)}%`;
   }
 
   const renderContent = () => {
@@ -79,32 +82,39 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({ activeView, user }) =
     switch (activeView) {
       case 'My Child\'s Profile':
         return (
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <DetailedStudentProfile student={child} allClasses={classes} allSubjects={subjects} />
-            </div>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <DetailedStudentProfile student={child} allClasses={classes} allSubjects={subjects} />
+          </div>
         );
       case 'Marks':
         const marksColumns = [
-            { header: 'Subject', accessor: (item: Mark) => subjects.find(s => s.id === item.subjectId)?.name || 'N/A'},
-            { header: 'Exam', accessor: 'examName' as keyof Mark },
-            { header: 'Marks Obtained', accessor: 'marks' as keyof Mark },
-            { header: 'Total Marks', accessor: 'total' as keyof Mark },
-            { header: 'Grade', accessor: 'grade' as keyof Mark },
+          { header: 'Subject', accessor: (item: Mark) => subjects.find(s => s.id === item.subjectId)?.name || 'N/A' },
+          { header: 'Exam', accessor: 'examName' as keyof Mark },
+          { header: 'Marks Obtained', accessor: 'marks' as keyof Mark },
+          { header: 'Total Marks', accessor: 'total' as keyof Mark },
+          { header: 'Grade', accessor: 'grade' as keyof Mark },
         ];
         return <Table<Mark> columns={marksColumns} data={marks} />;
       case 'Attendance':
         const attendanceColumns = [
-            { header: 'Date', accessor: 'date' as keyof Attendance },
-            { header: 'Status', accessor: 'status' as keyof Attendance },
+          { header: 'Date', accessor: 'date' as keyof Attendance },
+          {
+            header: 'Status', accessor: (item: Attendance) => (
+              <div className="flex items-center">
+                <span>{item.status}</span>
+                {item.teacherId === 201 && <span className="ml-1 text-xs text-gray-400"> (Biometric)</span>}
+              </div>
+            )
+          },
         ];
         return <Table<Attendance> columns={attendanceColumns} data={attendance} />;
       case 'Timetable':
         const timetableColumns = [
-            { header: 'Day', accessor: 'day' as keyof TimetableEntry },
-            { header: 'Time Slot', accessor: 'timeSlot' as keyof TimetableEntry },
-            { header: 'Subject', accessor: (item: TimetableEntry) => subjects.find(s => s.id === item.subjectId)?.name || 'N/A' },
-            { header: 'Teacher', accessor: (item: TimetableEntry) => teachers.find(t => t.id === item.teacherId)?.name || 'N/A' },
-            { header: 'Room', accessor: 'room' as keyof TimetableEntry },
+          { header: 'Day', accessor: 'day' as keyof TimetableEntry },
+          { header: 'Time Slot', accessor: 'timeSlot' as keyof TimetableEntry },
+          { header: 'Subject', accessor: (item: TimetableEntry) => subjects.find(s => s.id === item.subjectId)?.name || 'N/A' },
+          { header: 'Teacher', accessor: (item: TimetableEntry) => teachers.find(t => t.id === item.teacherId)?.name || 'N/A' },
+          { header: 'Room', accessor: 'room' as keyof TimetableEntry },
         ];
         return <Table<TimetableEntry> columns={timetableColumns} data={timetable} />;
       case 'Fees':
@@ -120,17 +130,35 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({ activeView, user }) =
         return (
           <div>
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">Parent Dashboard for {child.name}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card title="Overall Percentage" value={calculateOverallPercentage()} icon={<PresentationChartLineIcon />} color="bg-green-100 text-green-600" />
-              <Card title="Attendance" value={calculateAttendancePercentage()} icon={<ClipboardListIcon />} color="bg-yellow-100 text-yellow-600" />
-            </div>
-            <div className="mt-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card title="Overall Percentage" value={calculateOverallPercentage()} icon={<PresentationChartLineIcon />} color="bg-green-100 text-green-600" />
+                  <Card title="Attendance" value={calculateAttendancePercentage()} icon={<ClipboardListIcon />} color="bg-yellow-100 text-yellow-600" />
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                  <h3 className="text-lg font-semibold mb-4">Child's Daily Status</h3>
+                  <div className="flex items-center space-x-2 text-sm">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span className="text-gray-600">Currently in Class 4-A (Mathematics)</span>
+                  </div>
+                </div>
                 <AnnouncementsView role={UserRole.PARENT} />
+              </div>
+              <div className="lg:col-span-1">
+                <BiometricAttendance
+                  userName={child.name}
+                  role="Student"
+                  isVerified={true}
+                  variant="simple"
+                />
+              </div>
             </div>
           </div>
         );
     }
   };
+
 
   return <div>{renderContent()}</div>;
 };

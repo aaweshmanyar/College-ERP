@@ -48,12 +48,12 @@ const DetailedStudentProfile: React.FC<DetailedStudentProfileProps> = ({ student
       <div className="border-b pb-4">
         <h3 className="text-lg font-semibold text-gray-800 mb-2">Student Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
-            <div><strong>Roll No:</strong> {student.rollNumber}</div>
-            <div><strong>Class:</strong> {studentClass ? `${studentClass.name}-${studentClass.section}` : 'N/A'}</div>
-            <div><strong>Date of Birth:</strong> {student.dob}</div>
-            <div><strong>Gender:</strong> {student.gender}</div>
-            <div className="md:col-span-2"><strong>Address:</strong> {student.address}</div>
-            <div><strong>Admission Date:</strong> {student.admissionDate}</div>
+          <div><strong>Roll No:</strong> {student.rollNumber}</div>
+          <div><strong>Class:</strong> {studentClass ? `${studentClass.name}-${studentClass.section}` : 'N/A'}</div>
+          <div><strong>Date of Birth:</strong> {student.dob}</div>
+          <div><strong>Gender:</strong> {student.gender}</div>
+          <div className="md:col-span-2"><strong>Address:</strong> {student.address}</div>
+          <div><strong>Admission Date:</strong> {student.admissionDate}</div>
         </div>
       </div>
 
@@ -61,11 +61,11 @@ const DetailedStudentProfile: React.FC<DetailedStudentProfileProps> = ({ student
       <div className="border-b pb-4">
         <h3 className="text-lg font-semibold text-gray-800 mb-2">Guardian Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
-            <div><strong>Name:</strong> {student.guardianName}</div>
-            <div><strong>Contact:</strong> {student.guardianContact}</div>
+          <div><strong>Name:</strong> {student.guardianName}</div>
+          <div><strong>Contact:</strong> {student.guardianContact}</div>
         </div>
       </div>
-      
+
       {/* Marks Section */}
       <div>
         <h4 className="text-lg font-semibold text-gray-800 mb-2">Marks Record</h4>

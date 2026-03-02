@@ -1,9 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import * as api from '../../../services/mockApiService';
 import type { Student, Class } from '../../../types';
 import TransferCertificate from '../common/TransferCertificate';
 import BonafideCertificate from '../common/BonafideCertificate';
 import EventCertificate from '../common/EventCertificate';
+import { DownloadIcon } from '../../icons/Icons';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 type CertificateType = 'transfer' | 'bonafide' | 'event';
 
@@ -11,12 +14,14 @@ const CertificateGeneration: React.FC = () => {
     const [students, setStudents] = useState<Student[]>([]);
     const [classes, setClasses] = useState<Class[]>([]);
     const [loading, setLoading] = useState(true);
-    
+    const [exporting, setExporting] = useState(false);
+
     const [certificateType, setCertificateType] = useState<CertificateType>('transfer');
     const [selectedStudentId, setSelectedStudentId] = useState<string>('');
     const [eventName, setEventName] = useState<string>('');
     const [achievement, setAchievement] = useState<string>('');
 
+    const certificateRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -39,6 +44,39 @@ const CertificateGeneration: React.FC = () => {
         return classes.find(c => c.id === selectedStudent.classId);
     }, [selectedStudent, classes]);
 
+    const handleExportPDF = async () => {
+        if (!certificateRef.current) return;
+
+        try {
+            setExporting(true);
+            const element = certificateRef.current;
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                logging: false,
+                useCORS: true
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            pdf.addImage(imgData, 'PNG', 0, 10, pdfWidth, pdfHeight);
+            pdf.save(`${selectedStudent?.name}_${certificateType}_certificate.pdf`);
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert('Failed to generate PDF. Please try again.');
+        } finally {
+            setExporting(false);
+        }
+    };
+
     const renderCertificatePreview = () => {
         if (!selectedStudent || !selectedStudentClass) return null;
 
@@ -48,7 +86,7 @@ const CertificateGeneration: React.FC = () => {
             case 'bonafide':
                 return <BonafideCertificate student={selectedStudent} studentClass={selectedStudentClass} />;
             case 'event':
-                 if (!eventName || !achievement) return <p className="text-center text-red-500">Please fill in the event name and achievement.</p>;
+                if (!eventName || !achievement) return <p className="text-center text-red-500">Please fill in the event name and achievement.</p>;
                 return <EventCertificate student={selectedStudent} eventName={eventName} achievement={achievement} />;
             default:
                 return null;
@@ -71,10 +109,10 @@ const CertificateGeneration: React.FC = () => {
                     <div className="flex space-x-4">
                         {(['transfer', 'bonafide', 'event'] as CertificateType[]).map(type => (
                             <label key={type} className="flex items-center space-x-2 cursor-pointer">
-                                <input 
-                                    type="radio" 
-                                    name="certificateType" 
-                                    value={type} 
+                                <input
+                                    type="radio"
+                                    name="certificateType"
+                                    value={type}
                                     checked={certificateType === type}
                                     onChange={() => setCertificateType(type)}
                                     className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
@@ -124,9 +162,31 @@ const CertificateGeneration: React.FC = () => {
 
                 {selectedStudent && (
                     <div className="border-t pt-6">
-                        <h3 className="text-xl font-semibold text-gray-700 mb-4">3. Certificate Preview</h3>
-                        <div className="p-4 border rounded-md bg-gray-50">
-                            {renderCertificatePreview()}
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-xl font-semibold text-gray-700">3. Certificate Preview</h3>
+                            <button
+                                onClick={handleExportPDF}
+                                disabled={exporting || (certificateType === 'event' && (!eventName || !achievement))}
+                                className={`flex items-center space-x-2 px-6 py-2 rounded-md font-medium text-white transition-all 
+                                    ${exporting ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 shadow-lg hover:shadow-indigo-200'}`}
+                            >
+                                {exporting ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                        <span>Generating PDF...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <DownloadIcon />
+                                        <span>Export to PDF</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                        <div className="p-4 border rounded-md bg-gray-50 overflow-auto">
+                            <div ref={certificateRef}>
+                                {renderCertificatePreview()}
+                            </div>
                         </div>
                     </div>
                 )}
@@ -134,5 +194,6 @@ const CertificateGeneration: React.FC = () => {
         </div>
     );
 };
+
 
 export default CertificateGeneration;
